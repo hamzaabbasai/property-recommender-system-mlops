@@ -1,0 +1,14 @@
+{
+  "baseline_precision@10": 0.0014,
+  "baseline_recall@10": 0.014,
+  "baseline_map@10": 0.007185714285714286,
+  "baseline_ndcg@10": 0.008825444411568366,
+  "baseline_catalog_coverage": 0.20608718080990457,
+  "learned_precision@10": 0.001,
+  "learned_recall@10": 0.01,
+  "learned_map@10": 0.004622222222222222,
+  "learned_ndcg@10": 0.005899484620082876,
+  "learned_catalog_coverage": 0.2283982460665463,
+  "evaluated_users": 500.0,
+  "training_users": 1500.0
+}
