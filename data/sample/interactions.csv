@@ -1,0 +1,5 @@
+user_id,property_id,event_type,relevance,timestamp
+u-1,p-1,review,1,2026-05-01T10:00:00Z
+u-1,p-2,review,1,2026-06-01T10:00:00Z
+u-2,p-2,review,1,2026-05-12T10:00:00Z
+u-2,p-3,review,1,2026-06-12T10:00:00Z
