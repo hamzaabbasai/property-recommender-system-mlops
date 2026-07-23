@@ -1,56 +1,121 @@
 # Hybrid Property Recommender with MLOps
 
-A property recommendation project for Berlin short-stay listings. It combines content retrieval, review-history signals, ranking, offline evaluation, a FastAPI service and a React/Mapbox interface.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11%2B-blue.svg" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg" alt="FastAPI 0.115+">
+  <img src="https://img.shields.io/badge/scikit--learn-1.5%2B-F7931E.svg" alt="Scikit-learn 1.5+">
+  <img src="https://img.shields.io/badge/FAISS-1.9%2B-0467DF.svg" alt="FAISS 1.9+">
+  <img src="https://img.shields.io/badge/LightGBM-4.5%2B-02569B.svg" alt="LightGBM 4.5+">
+  <img src="https://img.shields.io/badge/MLflow-3.0%2B-0194E2.svg" alt="MLflow 3.0+">
+  <img src="https://img.shields.io/badge/Next.js-16.2-000000.svg" alt="Next.js 16.2">
+  <img src="https://img.shields.io/badge/Mapbox%20GL-3.26-4264FB.svg" alt="Mapbox GL 3.26">
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED.svg" alt="Docker Compose">
+</p>
 
-The real dataset comes from [Inside Airbnb](https://insideairbnb.com/get-the-data/). The repository does not include the downloaded data or a trained model.
+## Business Problem
 
-## What this project shows
+Short-stay platforms can have thousands of properties. Users must compare price, location, room type, amenities, rating, and availability. Normal filters help, but they do not learn what a user may prefer.
 
-- Two-stage recommendation: candidate retrieval followed by ranking
-- TF-IDF text features with FAISS vector lookup and a NumPy fallback
-- Item-to-item collaborative signals from users who reviewed more than one listing
-- A weighted baseline and an optional LightGBM LambdaRank model
-- Cold-start results from listing metadata, rating, popularity and availability
-- Precision@K, Recall@K, MAP@K, NDCG@K and catalogue coverage
-- MLflow experiment tracking and saved model artifacts
-- FastAPI endpoints with typed requests and responses
-- React filters, saved items, comparison, explanations and an interactive map
-- Python, API and frontend build tests
+Popular listings can also appear too often, while new users and new properties have little history. This makes it harder to return useful and varied results.
 
-## Data
+## How It Solves the Problem
 
-The download script uses the Berlin snapshot dated 26 June 2026:
+This system uses a two-stage recommendation flow. The first stage finds a small group of suitable properties. It uses hard filters, property text, FAISS vector search, and review-history signals. The second stage ranks those candidates by query match, budget fit, amenities, location, rating, popularity, and availability.
 
-- `listings.csv.gz` for listing text, room type, nightly price, amenities, rating and coordinates
-- `reviews.csv.gz` for positive user-item history
-- `neighbourhoods.geojson` for Berlin boundaries
+The system also supports users and properties with no history. It uses the available preferences and listing details to build cold-start results. Each result includes a match score and short reasons, so the ranking is easier to understand.
 
-Inside Airbnb provides this data under CC BY 4.0. Reviewer IDs are salted and hashed during preparation. Reviewer names and review text are not stored.
+FastAPI serves the recommendations. The Next.js interface provides search filters, saved properties, comparison, and a Mapbox map. MLflow records training runs and model settings.
 
-A review is only a proxy for positive feedback. It does not give impressions, dislikes, saves or booking conversion, so this project should not claim production-level recommendation quality.
+The project uses public review history as positive feedback. A review does not show impressions, dislikes, saves, or booking conversion, so it is not a full view of user behaviour.
 
-## Recommendation flow
+## How a Recommendation Moves Through the System
 
-```mermaid
-flowchart LR
-    A[Query and preferences] --> B[Hard filters]
-    B --> C[Text and collaborative retrieval]
-    C --> D[Ranking features]
-    D --> E[Weighted or LightGBM ranker]
-    E --> F[Diversity reranking]
-    F --> G[Top listings with reasons]
-```
+The system creates recommendations in these steps:
 
-The weighted ranker works without training and is the default serving model. Training creates `artifacts/models/lgbm_ranker.joblib`. Set `USE_LEARNED_RANKER=true` only after its offline metrics beat the baseline.
+1. The API reads the search query and user preferences.
+2. Hard filters remove properties outside the budget or request.
+3. TF-IDF and FAISS find properties with similar text and amenities.
+4. Review history adds an item-to-item collaborative score when user history exists.
+5. The hybrid retriever combines the candidate sources.
+6. The baseline or LightGBM ranker scores each candidate.
+7. Diversity reranking reduces repeated areas and property types.
+8. The API returns the top properties with match reasons.
 
-## Project structure
+The weighted ranker works without model training and is the default. The LightGBM ranker is optional and should only be used after it performs better in offline evaluation.
+
+## Main Features
+
+### Hybrid candidate retrieval
+
+- Hard filters check budget, bedrooms, property type, and location.
+- TF-IDF creates vectors from title, description, area, room type, and amenities.
+- FAISS searches the property vectors quickly.
+- Item-to-item collaborative scores use users who reviewed more than one property.
+- The hybrid retriever combines content and collaborative signals.
+
+### Ranking and personalization
+
+- The weighted baseline scores query match, budget fit, amenities, location, rating, popularity, and availability.
+- LightGBM LambdaRank can learn ranking weights from interaction data.
+- User history creates simple preferences for areas, property types, price, and amenities.
+- Diversity reranking reduces repeated results.
+
+### Cold-start recommendations
+
+- New users receive results from their search and selected preferences.
+- Users without preferences receive useful properties based on rating, popularity, and availability.
+- New properties can appear through their text and metadata before they have reviews.
+
+### Recommendation explanations
+
+Each result can show reasons such as:
+
+- Within budget
+- Matches selected amenities
+- Near the preferred area
+- Strong guest rating
+- Similar to the search text
+
+### Offline evaluation and MLflow
+
+- The latest interaction for each user is held out for testing.
+- The project reports Precision@K, Recall@K, MAP@K, NDCG@K, and catalogue coverage.
+- The baseline and LightGBM ranker are evaluated with the same split.
+- MLflow stores model parameters and training artifacts.
+- The learned model is saved at `artifacts/models/lgbm_ranker.joblib`.
+
+### API and frontend
+
+- `POST /api/v1/recommendations` returns ranked properties.
+- `GET /health` supports service and Docker health checks.
+- Pydantic validates API requests and responses.
+- The Next.js interface supports filters, saved items, comparison, and result reasons.
+- Mapbox GL shows property markers and listing details.
+
+### Code Structure
+
+- `src/app/data` loads, cleans, validates, and splits the data.
+- `src/app/features` builds property, user, interaction, and text features.
+- `src/app/retrieval` finds candidates with content and collaborative search.
+- `src/app/ranking` holds the weighted, LightGBM, and diversity rankers.
+- `src/app/recommendation` creates final results and explanations.
+- `src/app/evaluation` holds ranking metrics and error analysis.
+- `src/app/pipelines` downloads data, prepares files, trains models, and runs evaluation.
+- `src/app/apis` holds the FastAPI routes.
+- `frontend` holds the Next.js and Mapbox interface.
+
+## Project Structure
 
 ```text
-├── configs/                       # Data, training and API settings
+hybrid-property-recommender-mlops/
+├── artifacts/
+│   ├── indexes/
+│   ├── models/
+│   └── evaluation.json
 ├── data/
-│   ├── raw/                      # Downloaded files, ignored by Git
-│   ├── processed/                # Model-ready files, ignored by Git
-│   └── sample/                   # Small sample data
+│   ├── raw/
+│   ├── processed/
+│   └── sample/
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_features_and_baselines.ipynb
@@ -58,81 +123,148 @@ The weighted ranker works without training and is the default serving model. Tra
 │   └── 04_evaluation_and_error_analysis.ipynb
 ├── src/
 │   └── app/
-│       ├── apis/                 # FastAPI routes
-│       ├── data/                 # Load and clean data
-│       ├── features/             # Property and user features
-│       ├── retrieval/            # Search candidates
-│       ├── ranking/              # Rank candidates
-│       ├── recommendation/       # Final results and reasons
-│       ├── evaluation/           # Ranking metrics
-│       ├── pipelines/            # Prepare, train and evaluate
-│       ├── monitoring/           # Drift and service metrics
-│       └── main.py               # FastAPI entry point
+│       ├── apis/
+│       ├── data/
+│       ├── evaluation/
+│       ├── features/
+│       ├── monitoring/
+│       ├── pipelines/
+│       ├── ranking/
+│       ├── recommendation/
+│       ├── retrieval/
+│       ├── config.py
+│       ├── dependencies.py
+│       ├── main.py
+│       └── schemas.py
 ├── frontend/
-│   ├── app/                      # Next.js pages and styles
-│   ├── components/               # React UI and Mapbox map
-│   └── public/                   # Images and favicon
-├── scripts/                      # Download, train, evaluate and serve
-├── tests/                        # Unit and integration tests
-├── docs/                         # Architecture and model notes
-└── artifacts/                    # Local indexes and trained models
+│   ├── app/
+│   ├── components/
+│   ├── public/
+│   └── package.json
+├── tests/
+│   ├── fixtures/
+│   ├── integration/
+│   └── unit/
+├── .env.example
+├── .gitignore
+├── Dockerfile
+├── LICENSE
+├── Makefile
+├── README.md
+├── docker-compose.yml
+├── pyproject.toml
+└── uv.lock
 ```
 
-There is one Python package under `src/app`. The frontend is separate under
-`frontend`.
+## Data Source
 
-## Run locally
+The project uses the Berlin data from [Inside Airbnb](https://insideairbnb.com/get-the-data/). The download command uses the snapshot dated 26 June 2026.
 
-Use Python 3.11+ and Node 22+.
+- `listings.csv.gz` contains property text, room type, price, amenities, rating, availability, and coordinates.
+- `reviews.csv.gz` provides positive user-property interactions.
+- `neighbourhoods.geojson` contains Berlin area boundaries.
+
+Inside Airbnb provides the data under the CC BY 4.0 license. During preparation, reviewer IDs are salted and hashed. Reviewer names and review text are not stored.
+
+Downloaded and processed data are not included in the repository. A small sample dataset is included for local checks.
+
+## Steps to Run the Project
+
+The project needs Python 3.11 or later, Node.js 22.13 or later, `uv`, and a public Mapbox token.
+
+### 1. Open the project folder
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[ml,dev]"
+cd hybrid-property-recommender-mlops
+```
+
+### 2. Install the Python packages
+
+```bash
+uv sync --extra ml --extra dev --extra notebooks
+```
+
+`uv` creates `.venv` and installs the locked package versions.
+
+### 3. Create the environment files
+
+```bash
 cp .env.example .env
 cp frontend/.env.example frontend/.env.local
-cd frontend
-npm ci
-cd ..
 ```
 
-Download and prepare the real data:
+Open `frontend/.env.local` and add a public Mapbox token:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_MAPBOX_TOKEN=your-public-mapbox-token
+```
+
+The frontend reads the token from `NEXT_PUBLIC_MAPBOX_TOKEN`. The map does not use a second map provider.
+
+### 4. Install the frontend packages
 
 ```bash
-python scripts/download_data.py
-python -m app.pipelines.prepare_data
+npm --prefix frontend ci
 ```
 
-Train and evaluate:
+### 5. Download and prepare the real data
 
 ```bash
-python scripts/train.py --skip-prepare --max-users 1500
-python scripts/evaluate.py --k 10 --max-users 500
-mlflow ui
+uv run python -m app.pipelines.download_data
+uv run python -m app.pipelines.prepare_data
 ```
 
-The evaluation writes `artifacts/evaluation.json`. The current review-only experiment did not beat the baseline, so the learned model is trained but not promoted. See [docs/evaluation.md](docs/evaluation.md).
+The prepared files are saved in `data/processed`.
 
-Start the API and web app in two terminals:
+### 6. Train the optional LightGBM ranker
 
 ```bash
-uvicorn app.main:app --app-dir src --reload
+uv run python -m app.pipelines.train_ranker --skip-prepare --max-users 1500
 ```
+
+Training saves the model in `artifacts/models` and records the run in MLflow.
+
+### 7. Run offline evaluation
 
 ```bash
-cd frontend
-npm run dev
+uv run python -m app.pipelines.evaluate_model --k 10 --max-users 500
 ```
 
-Open `http://localhost:8000/docs` for the API and `http://localhost:3000` for the UI. If the API is offline, the UI keeps the current results.
+The metrics are saved in `artifacts/evaluation.json`.
 
-## Mapbox
+### 8. Run the checks
 
-Mapbox fits this project because property results need styled markers, popups, bounds and smooth map interactions. Put a public token in `frontend/.env.local` as `NEXT_PUBLIC_MAPBOX_TOKEN`. Restrict the token to your site URL before deployment. Do not put a secret token in frontend code.
+```bash
+uv run pytest
+uv run ruff check src tests
+npm --prefix frontend run lint
+npm --prefix frontend run build
+```
 
-The map requires this Mapbox token. There is no second map provider or tile fallback.
+### 9. Start the API
 
-## API example
+```bash
+uv run uvicorn app.main:app --app-dir src --reload
+```
+
+### 10. Start the frontend
+
+Open a second terminal:
+
+```bash
+npm --prefix frontend run dev
+```
+
+### 11. Open the application
+
+- Frontend: `http://localhost:3000`
+- API documentation: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
+
+## Send a Test API Request
+
+Keep the API running. Open another terminal and run:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/recommendations \
@@ -148,14 +280,40 @@ curl -X POST http://localhost:8000/api/v1/recommendations \
   }'
 ```
 
-## Checks
+## Run with Docker Compose
+
+Add the Mapbox token before starting the containers:
 
 ```bash
-pytest
-ruff check src tests scripts
-cd frontend
-npm run lint
-npm run test
+export NEXT_PUBLIC_MAPBOX_TOKEN="your-public-mapbox-token"
+docker compose up --build
 ```
 
-See [TODO.md](TODO.md) for four practical next steps.
+Docker Compose starts these services:
+
+- FastAPI on `http://localhost:8000`
+- Next.js on `http://localhost:3000`
+- MLflow on `http://localhost:5000`
+
+Stop the services with:
+
+```bash
+docker compose down
+```
+
+## Open the Notebooks
+
+```bash
+uv run jupyter lab
+```
+
+Run the notebooks in number order:
+
+1. `01_data_exploration.ipynb` checks data quality, prices, areas, and interaction sparsity.
+2. `02_features_and_baselines.ipynb` creates features and compares simple baselines.
+3. `03_hybrid_retrieval_and_ranking.ipynb` tests retrieval, ranking, and explanations.
+4. `04_evaluation_and_error_analysis.ipynb` compares metrics, coverage, user groups, and errors.
+
+The notebooks use processed Inside Airbnb data when it is available. Otherwise, they use the small sample data.
+
+The weighted baseline has better ranking metrics. LightGBM has higher catalogue coverage, but it is not used by the API. Set `USE_LEARNED_RANKER=true` only after a learned model performs better than the baseline.
