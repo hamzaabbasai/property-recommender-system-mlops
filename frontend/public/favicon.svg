@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" aria-label="Property recommender favicon">
+ <defs>
+  <linearGradient id="propertyGreen" x1="0" y1="0" x2="1" y2="1">
+   <stop offset="0%" stop-color="#8EEA35"/>
+   <stop offset="100%" stop-color="#22B94A"/>
+  </linearGradient>
+ </defs>
+ <!-- Transparent background -->
+ <g class="layer">
+  <title>Layer 1</title>
+  <path d="m196,32l-1,1l-9,0l-1,1l-5,0l-1,1l-13,2l-25,9l-26,15l-15,12l-11,11l-18,24l-9,17l-5,15l-2,3l0,3l-3,8l-1,9l-1,1l0,5l-1,1l0,9l-1,1l0,26l1,1l0,11l1,1l0,7l1,1l1,11l1,1l0,4l1,1l4,19l2,4l0,3l4,12l2,3l1,5l7,15l0,2l4,7l0,2l18,34l26,40l35,44l41,42l6,3l7,0l6,-3l22,-21l0,-10l-12,-6l-11,-11l-6,-11l-2,-6l-1,-17l1,-1l0,-5l2,-6l4,-8l109,-110l6,-4l10,-4l3,0l1,-1l15,0l1,-1l3,-17l1,-1l0,-4l1,-1l1,-14l1,-1l1,-36l-1,-1l0,-9l-1,-1l0,-5l-1,-1l-2,-13l-9,-25l-15,-26l-12,-15l-11,-11l-15,-12l-16,-10l-25,-11l-3,0l-11,-4l-15,-2l-1,-1l-33,-1zm3,79l17,0l1,1l10,1l12,4l17,10l10,9l12,16l4,8l4,12l1,10l1,1l0,17l-1,1l-1,10l-4,12l-10,17l-10,11l-15,11l-20,8l-11,1l-1,1l-16,0l-1,-1l-10,-1l-12,-4l-17,-10l-11,-10l-11,-15l-4,-8l-4,-12l-1,-10l-1,-1l0,-16l1,-1l1,-11l5,-14l9,-15l9,-10l16,-12l8,-4l12,-4l10,-1l1,-1z" fill="url(#propertyGreen)" fill-rule="evenodd" clip-rule="evenodd" id="svg_1"/>
+  <path d="m345,289l-103,102l-2,5l1,10l6,7l5,2l10,-1l9,-8l1,1l0,60l2,5l7,6l3,1l51,0l0,-51l2,-5l6,-6l5,-2l7,0l5,2l6,6l2,5l0,51l51,0l3,-1l7,-6l2,-5l0,-60l1,-1l7,7l5,2l10,-1l2,-1l6,-7l1,-3l-1,-10l-102,-103l-5,-2l-10,1z" fill="url(#propertyGreen)" id="svg_2"/>
+ </g>
+</svg>
