@@ -12,6 +12,9 @@
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED.svg" alt="Docker Compose">
 </p>
 
+ ##### [[Live Demo](https://property-recommender-system.netlify.app/)]
+ 
+
 ## Business Problem
 
 Short-stay platforms can have thousands of properties. Users must compare price, location, room type, amenities, rating, and availability. Normal filters help, but they do not learn what a user may prefer.
@@ -317,3 +320,11 @@ Run the notebooks in number order:
 The notebooks use processed Inside Airbnb data when it is available. Otherwise, they use the small sample data.
 
 The weighted baseline has better ranking metrics. LightGBM has higher catalogue coverage, but it is not used by the API. Set `USE_LEARNED_RANKER=true` only after a learned model performs better than the baseline.
+
+## Credits
+
+The property icon is from [Flaticon](https://www.flaticon.com/free-icons/property).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
